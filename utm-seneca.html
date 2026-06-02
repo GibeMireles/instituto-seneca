@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador de enlace de campaña — Instituto Séneca</title>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #1a2744;
+    --navy-mid: #243464;
+    --navy-light: #e8edf5;
+    --navy-pale: #f3f5fa;
+    --gold: #b8892a;
+    --gold-light: #f5edda;
+    --text: #1a2744;
+    --text-muted: #5a6478;
+    --border: #d4dae8;
+    --white: #ffffff;
+    --success: #1a6644;
+    --success-bg: #e6f2ec;
+    --radius: 10px;
+    --radius-lg: 16px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--navy-pale);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0 0 60px;
+  }
+
+  header {
+    background: var(--navy);
+    padding: 28px 40px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .logo-wrap {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .logo-img {
+    height: 52px;
+    width: auto;
+    
+  }
+
+  .header-divider {
+    width: 1px;
+    height: 40px;
+    background: rgba(255,255,255,0.2);
+  }
+
+  .header-text h1 {
+    font-family: 'Crimson Pro', serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: #ffffff;
+    line-height: 1.2;
+  }
+
+  .header-text p {
+    font-size: 13px;
+    color: rgba(255,255,255,0.55);
+    margin-top: 3px;
+    font-weight: 300;
+  }
+
+  .hero-band {
+    background: var(--navy-mid);
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .hero-band p {
+    font-size: 14px;
+    color: rgba(255,255,255,0.75);
+    font-weight: 300;
+    line-height: 1.5;
+    max-width: 680px;
+  }
+
+  .hero-band p strong {
+    color: #ffffff;
+    font-weight: 500;
+  }
+
+  .icon-info {
+    font-size: 20px;
+    color: rgba(255,255,255,0.4);
+    flex-shrink: 0;
+  }
+
+  main {
+    max-width: 780px;
+    margin: 36px auto 0;
+    padding: 0 24px;
+  }
+
+  .step-group {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--navy-pale);
+  }
+
+  .step-num {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--navy);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .step-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .step-subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    font-weight: 300;
+  }
+
+  .step-body {
+    padding: 20px 24px;
+  }
+
+  .field {
+    margin-bottom: 20px;
+  }
+
+  .field:last-child { margin-bottom: 0; }
+
+  .field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .field .hint {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    font-weight: 300;
+    line-height: 1.5;
+  }
+
+  .field .example {
+    font-size: 11px;
+    color: var(--gold);
+    background: var(--gold-light);
+    padding: 4px 10px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 8px;
+    font-weight: 400;
+  }
+
+  input[type="text"], input[type="url"] {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--white);
+    color: var(--text);
+    transition: border-color 0.15s, box-shadow 0.15s;
+    outline: none;
+  }
+
+  input[type="text"]:focus, input[type="url"]:focus {
+    border-color: var(--navy-mid);
+    box-shadow: 0 0 0 3px rgba(36,52,100,0.08);
+  }
+
+  input[type="text"]::placeholder, input[type="url"]::placeholder {
+    color: #b0b8cc;
+    font-weight: 300;
+  }
+
+  .readonly-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--navy-light);
+    color: var(--navy-mid);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 12px;
+    border-radius: 6px;
+    margin-top: 4px;
+  }
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--navy-mid);
+  }
+
+  .optional-tag {
+    font-size: 11px;
+    color: var(--text-muted);
+    background: #f0f0f0;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-left: 6px;
+    font-weight: 300;
+  }
+
+  .generate-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--navy);
+    color: #ffffff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    letter-spacing: 0.2px;
+  }
+
+  .generate-btn:hover { background: var(--navy-mid); }
+  .generate-btn:active { transform: scale(0.99); }
+
+  .result-box {
+    display: none;
+    background: var(--white);
+    border: 1.5px solid var(--navy-mid);
+    border-radius: var(--radius-lg);
+    margin-top: 20px;
+    overflow: hidden;
+  }
+
+  .result-header {
+    background: var(--navy);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .result-header span {
+    font-size: 13px;
+    font-weight: 500;
+    color: #ffffff;
+    letter-spacing: 0.3px;
+  }
+
+  .result-body {
+    padding: 20px 24px;
+  }
+
+  #utm-output {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: var(--navy-mid);
+    word-break: break-all;
+    line-height: 1.7;
+    background: var(--navy-pale);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 18px;
+    background: var(--white);
+    color: var(--navy);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: background 0.12s, border-color 0.12s;
+  }
+
+  .copy-btn:hover { background: var(--navy-pale); border-color: var(--navy-mid); }
+
+  .copy-confirm {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--success);
+    margin-left: 12px;
+    font-weight: 500;
+  }
+
+  .params-preview {
+    margin-top: 18px;
+    border-top: 1px solid var(--navy-pale);
+    padding-top: 16px;
+  }
+
+  .params-preview h4 {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 12px;
+  }
+
+  .param-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--navy-pale);
+    font-size: 13px;
+  }
+
+  .param-row:last-child { border-bottom: none; }
+
+  .param-key {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    color: var(--gold);
+    background: var(--gold-light);
+    padding: 2px 8px;
+    border-radius: 4px;
+    min-width: 140px;
+    flex-shrink: 0;
+  }
+
+  .param-val {
+    color: var(--text);
+    font-weight: 300;
+  }
+
+  .flow-diagram {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 24px;
+    background: var(--navy-pale);
+    border-top: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+
+  .flow-step {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
+  .flow-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+
+  .flow-arrow {
+    color: var(--border);
+    font-size: 14px;
+  }
+
+  footer {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 40px;
+    font-weight: 300;
+  }
+
+  @media (max-width: 600px) {
+    header { padding: 20px; }
+    .hero-band { padding: 16px 20px; }
+    main { padding: 0 16px; }
+    .step-body { padding: 16px; }
+    .step-header { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-wrap">
+<img src="data:image/png;base64,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" alt="Instituto Séneca" style="height:48px;width:auto;">
+    <div class="header-divider"></div>
+    <div class="header-text">
+      <h1>Generador de enlace de campaña</h1>
+      <p>Herramienta de seguimiento para campañas de Meta Ads</p>
+    </div>
+  </div>
+</header>
+
+<div class="hero-band">
+  <svg class="icon-info" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="8.5"/><line x1="12" y1="11" x2="12" y2="16"/></svg>
+  <p>Este formulario genera automáticamente un <strong>enlace especial</strong> que le dice a nuestro sistema de dónde viene cada persona interesada. Solo necesitas 3 datos — el resto lo hacemos nosotros.</p>
+</div>
+
+<main>
+
+  <div class="step-group">
+    <div class="step-header">
+      <div class="step-num">1</div>
+      <div>
+        <div class="step-title">¿Cuál es la página a la que llegará la gente?</div>
+        <div class="step-subtitle">Pega aquí el enlace de tu landing page</div>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="field">
+        <label>Dirección de la landing page</label>
+        <div class="hint">Es el link de la página donde llegarán las personas que hagan clic en tu anuncio. Normalmente lo puedes ver en la barra del navegador cuando visitas esa página.</div>
+        <div class="example">Ej: https://institutoséneca.es/formacion-empresas</div>
+        <input type="url" id="baseurl" placeholder="https://institutoséneca.es/tu-pagina">
+      </div>
+    </div>
+  </div>
+
+  <div class="step-group">
+    <div class="step-header">
+      <div class="step-num">2</div>
+      <div>
+        <div class="step-title">¿Cómo se llama esta campaña?</div>
+        <div class="step-subtitle">El nombre que le dieron internamente en Meta</div>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="field">
+        <label>Nombre de la campaña</label>
+        <div class="hint">Escríbelo exactamente como aparece en tu cuenta de Meta Ads, o como lo tienen anotado internamente. Puede tener espacios, los convertiremos automáticamente.</div>
+        <div class="example">Ej: Captación Junio 2026 / Formación Verano / Campaña Empresas</div>
+        <input type="text" id="campaign" placeholder="Nombre de tu campaña en Meta">
+      </div>
+    </div>
+  </div>
+
+  <div class="step-group">
+    <div class="step-header">
+      <div class="step-num">3</div>
+      <div>
+        <div class="step-title">Origen y canal (ya configurados)</div>
+        <div class="step-subtitle">Estos valores están fijos para campañas de Meta</div>
+      </div>
+    </div>
+    <div class="step-body" style="display: flex; gap: 32px; flex-wrap: wrap;">
+      <div>
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 6px; font-weight: 500;">Origen del tráfico</div>
+        <div class="readonly-badge"><div class="dot"></div> meta</div>
+      </div>
+      <div>
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 6px; font-weight: 500;">Tipo de medio</div>
+        <div class="readonly-badge"><div class="dot"></div> paid_social</div>
+      </div>
+      <div>
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 6px; font-weight: 500;">Identificador</div>
+        <div class="readonly-badge"><div class="dot"></div> lp_seneca</div>
+      </div>
+    </div>
+    <div style="padding: 0 24px 20px;">
+      <p style="font-size: 12px; color: var(--text-muted); margin-top: 12px; font-weight: 300;">Estos valores los configuró tu consultor para que el sistema identifique correctamente que el lead viene de Meta y de la landing page.</p>
+    </div>
+  </div>
+
+  <button class="generate-btn" onclick="generar()">
+    Generar enlace de campaña →
+  </button>
+
+  <div class="result-box" id="result-box">
+    <div class="result-header">
+      <span>✓ Enlace generado correctamente</span>
+      <span style="font-size: 12px; opacity: 0.6;">Cópialo y compártelo con tu agencia</span>
+    </div>
+    <div class="result-body">
+      <code id="utm-output"></code>
+      <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
+        <button class="copy-btn" onclick="copiar()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copiar enlace
+        </button>
+        <div class="copy-confirm" id="copy-confirm">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Copiado al portapapeles
+        </div>
+      </div>
+
+      <div class="params-preview">
+        <h4>¿Qué información lleva este enlace?</h4>
+        <div class="param-row">
+          <span class="param-key">utm_source</span>
+          <span class="param-val">meta — indica que el visitante viene de Meta (Facebook/Instagram)</span>
+        </div>
+        <div class="param-row">
+          <span class="param-key">utm_medium</span>
+          <span class="param-val">paid_social — identifica que es un anuncio de pago en redes sociales</span>
+        </div>
+        <div class="param-row">
+          <span class="param-key">utm_campaign</span>
+          <span class="param-val" id="preview-campaign">—</span>
+        </div>
+        <div class="param-row">
+          <span class="param-key">utm_content</span>
+          <span class="param-val">lp_seneca — identifica que viene de la landing page de Séneca</span>
+        </div>
+      </div>
+    </div>
+    <div class="flow-diagram">
+      <div class="flow-step">
+        <div class="flow-icon">📣</div>
+        Anuncio en Meta
+      </div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step">
+        <div class="flow-icon">🌐</div>
+        Landing page
+      </div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step">
+        <div class="flow-icon">📋</div>
+        Formulario
+      </div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step">
+        <div class="flow-icon">📊</div>
+        Kommo CRM
+      </div>
+    </div>
+  </div>
+
+  <footer>Instituto Séneca · Herramienta interna de seguimiento de campañas</footer>
+
+</main>
+
+<script>
+function slug(str) {
+  return str.trim().toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, '_')
+    .replace(/[^a-z0-9_\-]/g, '');
+}
+
+function generar() {
+  const base = document.getElementById('baseurl').value.trim();
+  const campaignRaw = document.getElementById('campaign').value.trim();
+
+  if (!base) {
+    alert('Por favor ingresa la dirección de tu landing page (paso 1).');
+    document.getElementById('baseurl').focus();
+    return;
+  }
+  if (!campaignRaw) {
+    alert('Por favor ingresa el nombre de la campaña (paso 2).');
+    document.getElementById('campaign').focus();
+    return;
+  }
+
+  const campaign = slug(campaignRaw);
+  const params = new URLSearchParams();
+  params.set('utm_source', 'meta');
+  params.set('utm_medium', 'paid_social');
+  params.set('utm_campaign', campaign);
+  params.set('utm_content', 'lp_seneca');
+
+  const sep = base.includes('?') ? '&' : '?';
+  const url = base + sep + params.toString();
+
+  document.getElementById('utm-output').textContent = url;
+  document.getElementById('preview-campaign').textContent = campaign + ' — nombre de tu campaña en Meta';
+
+  const box = document.getElementById('result-box');
+  box.style.display = 'block';
+  setTimeout(() => box.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+}
+
+function copiar() {
+  const text = document.getElementById('utm-output').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const c = document.getElementById('copy-confirm');
+    c.style.display = 'flex';
+    setTimeout(() => c.style.display = 'none', 3000);
+  });
+}
+</script>
+</body>
+</html>
