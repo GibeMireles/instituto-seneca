@@ -1,0 +1,721 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Editor de correos · Instituto Séneca</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #1b326c; --tinta: #151e61; --oro: #b8892a; --oro-claro: #f6eedd; --oro-suave: #fbf7ee;
+    --texto: #3d4658; --suave: #7b8494; --linea: #e7e2d6; --campo: #d9dde6;
+    --fondo: #f5f2ec; --panel: #fbfaf7; --blanco: #ffffff;
+    --ok: #1f6b45; --ok-fondo: #e3f2e9; --aviso: #8a5a00; --aviso-fondo: #fbefd5;
+    --sombra: 0 1px 2px rgba(21,30,97,.06), 0 4px 14px rgba(21,30,97,.06);
+    --radio: 14px;
+    --letra: "Plus Jakarta Sans", "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; font-family: var(--letra); color: var(--texto); background: var(--fondo); font-size: 14px; -webkit-font-smoothing: antialiased; }
+
+  /* Barra superior */
+  header { background: var(--navy); color: #fff; padding: 0 22px; height: 68px; display: flex; align-items: center; gap: 18px;
+           box-shadow: inset 0 -3px 0 var(--oro); position: relative; z-index: 2; }
+  .marca { display: flex; align-items: center; gap: 14px; min-width: 0; }
+  .marca img { height: 34px; width: auto; display: block; }
+  .marca .sep { width: 1px; height: 28px; background: rgba(255,255,255,.25); }
+  .marca h1 { margin: 0; font-size: 16px; font-weight: 600; letter-spacing: .2px; white-space: nowrap; }
+  .marca h1 span { display: block; font-size: 12px; font-weight: 400; color: #c3cde3; margin-top: 2px; }
+  header .esp { flex: 1; }
+  .acciones { display: flex; align-items: center; gap: 10px; }
+
+  /* Píldora de estado */
+  .estado { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 600; padding: 7px 13px; border-radius: 999px;
+            border: 0; cursor: default; font-family: inherit; }
+  .estado::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .estado.ok { background: var(--ok-fondo); color: var(--ok); }
+  .estado.pendiente { background: var(--aviso-fondo); color: var(--aviso); cursor: pointer; }
+  .estado.pendiente:hover { filter: brightness(.97); }
+
+  /* Botones */
+  button { font: inherit; font-weight: 600; font-size: 14px; border-radius: 10px; padding: 10px 16px; cursor: pointer; border: 1px solid transparent; transition: background .15s, border-color .15s, transform .05s; }
+  button:active { transform: translateY(1px); }
+  .b-claro { background: transparent; color: #fff; border-color: rgba(255,255,255,.35); }
+  .b-claro:hover { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.6); }
+  .b-oro { background: var(--oro); color: #fff; padding: 10px 20px; box-shadow: 0 2px 8px rgba(184,137,42,.35); }
+  .b-oro:hover { background: #a67a22; }
+  .b-oro svg, .b-claro svg { vertical-align: -3px; margin-right: 6px; }
+  .b-suave { background: var(--blanco); color: var(--navy); border-color: var(--campo); }
+  .b-suave:hover { border-color: var(--navy); }
+
+  /* Distribución */
+  .app { display: grid; grid-template-columns: minmax(380px, 470px) 1fr; height: calc(100vh - 68px); }
+  .panel { overflow-y: auto; padding: 20px 20px 48px; background: var(--panel); border-right: 1px solid var(--linea); counter-reset: paso; scroll-behavior: smooth; }
+  .vista { display: flex; flex-direction: column; min-width: 0; background: radial-gradient(circle at 50% 0%, #eef0f5 0%, #e4e6ec 70%); }
+
+  /* Ayuda */
+  .ayuda-caja { background: var(--oro-suave); border: 1px solid #efe2c4; border-radius: var(--radio); padding: 12px 16px; margin-bottom: 16px; font-size: 13px; line-height: 1.6; }
+  .ayuda-caja summary { cursor: pointer; font-weight: 600; color: var(--navy); list-style: none; display: flex; align-items: center; gap: 8px; }
+  .ayuda-caja summary::-webkit-details-marker { display: none; }
+  .ayuda-caja summary::after { content: "Ver"; margin-left: auto; font-size: 12px; color: var(--oro); font-weight: 600; }
+  .ayuda-caja[open] summary::after { content: "Ocultar"; }
+  .ayuda-caja ol { margin: 10px 0 6px; padding-left: 20px; }
+  .ayuda-caja li { margin-bottom: 4px; }
+
+  /* Pasos */
+  fieldset { border: 0; border-radius: var(--radio); padding: 18px 18px 18px; margin: 0 0 14px; background: var(--blanco); box-shadow: var(--sombra); min-width: 0; }
+  legend { float: left; width: 100%; padding: 0; margin: 0 0 6px; font-size: 15px; font-weight: 700; color: var(--tinta); display: flex; align-items: center; gap: 10px; }
+  legend + * { clear: both; }
+  fieldset.paso:not(.oculto) { counter-increment: paso; }
+  fieldset.paso legend::before { content: counter(paso); display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
+                                 background: var(--oro-claro); color: var(--oro); font-size: 13px; font-weight: 700; flex: none; }
+  legend .ayuda { font-weight: 400; }
+  .grupo { clear: both; }
+
+  label { display: block; font-size: 13px; font-weight: 600; color: var(--tinta); margin: 14px 0 6px; }
+  .ayuda { font-weight: 400; color: var(--suave); font-size: 12px; }
+  input[type=text], input[type=url], textarea { width: 100%; font: inherit; font-size: 14px; padding: 10px 12px; border: 1px solid var(--campo); border-radius: 10px;
+         background: #fff; color: #1d2433; transition: border-color .15s, box-shadow .15s, background .15s; }
+  textarea { min-height: 84px; resize: vertical; line-height: 1.5; }
+  input:hover, textarea:hover { border-color: #bfc6d4; }
+  input:focus, textarea:focus { outline: none; border-color: var(--oro); box-shadow: 0 0 0 3px rgba(184,137,42,.18); }
+  .por-editar { border-color: #e2c27e !important; background: #fffbf2 !important; }
+  .fila3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .fila2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .fila3 label, .fila2 label { margin-top: 10px; }
+
+  /* Tarjetas de plantilla */
+  .tarjetas { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+  .tarjeta { position: relative; margin: 0; display: flex; gap: 10px; align-items: flex-start; padding: 12px; border: 1.5px solid var(--linea); border-radius: 12px;
+             cursor: pointer; background: #fff; transition: border-color .15s, background .15s, box-shadow .15s; font-weight: 400; }
+  .tarjeta:hover { border-color: #cdb98a; }
+  .tarjeta input { position: absolute; opacity: 0; pointer-events: none; }
+  .tarjeta .icono { flex: none; width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; background: #eef1f7; color: var(--navy); transition: background .15s, color .15s; }
+  .tarjeta b { display: block; font-size: 13.5px; color: var(--tinta); font-weight: 700; }
+  .tarjeta small { display: block; font-size: 12px; color: var(--suave); line-height: 1.35; margin-top: 2px; }
+  .tarjeta:has(input:checked) { border-color: var(--navy); background: #f4f6fb; box-shadow: 0 0 0 3px rgba(27,50,108,.08); }
+  .tarjeta:has(input:checked) .icono { background: var(--navy); color: #fff; }
+  .tarjeta:has(input:focus-visible) { outline: 2px solid var(--oro); outline-offset: 2px; }
+
+  /* Interruptores de opciones */
+  .segmento { display: flex; background: #eef0f4; border-radius: 11px; padding: 4px; gap: 4px; }
+  .segmento label { flex: 1; margin: 0; text-align: center; padding: 8px 6px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; color: var(--suave);
+                    transition: background .15s, color .15s, box-shadow .15s; line-height: 1.25; }
+  .segmento label small { display: block; font-weight: 400; font-size: 11.5px; margin-top: 1px; }
+  .segmento input { position: absolute; opacity: 0; pointer-events: none; }
+  .segmento label:has(input:checked) { background: #fff; color: var(--navy); box-shadow: 0 1px 3px rgba(21,30,97,.15); }
+  .segmento label:has(input:focus-visible) { outline: 2px solid var(--oro); }
+
+  .noticia { border-top: 1px dashed var(--linea); padding-top: 4px; margin-top: 14px; }
+  .noticia:first-of-type { border-top: 0; margin-top: 0; padding-top: 0; }
+  .noticia > label:first-child { color: var(--oro); text-transform: uppercase; letter-spacing: .6px; font-size: 11.5px; }
+
+  /* Ajustes */
+  .ajustes { background: transparent; box-shadow: none; border: 1px solid var(--linea); padding: 0; }
+  .ajustes summary { cursor: pointer; padding: 14px 18px; font-weight: 600; color: var(--suave); list-style: none; display: flex; align-items: center; gap: 8px; }
+  .ajustes summary::-webkit-details-marker { display: none; }
+  .ajustes summary::after { content: "▾"; margin-left: auto; transition: transform .2s; }
+  .ajustes[open] summary::after { transform: rotate(180deg); }
+  .ajustes .dentro { padding: 0 18px 18px; }
+  .restablecer { margin-top: 6px; width: 100%; background: transparent; color: var(--suave); border: 1px dashed var(--campo); font-weight: 500; }
+  .restablecer:hover { color: var(--navy); border-color: var(--navy); }
+
+  /* Vista previa */
+  .barra { display: flex; justify-content: center; padding: 14px 16px 6px; }
+  .dispositivo { display: inline-flex; background: rgba(255,255,255,.7); border-radius: 999px; padding: 4px; box-shadow: var(--sombra); }
+  .dispositivo button { border-radius: 999px; padding: 7px 16px; font-size: 13px; background: transparent; color: var(--suave); border: 0; display: inline-flex; align-items: center; gap: 6px; }
+  .dispositivo button[aria-pressed="true"] { background: var(--navy); color: #fff; }
+  .marco { flex: 1; overflow: auto; display: flex; justify-content: center; align-items: flex-start; padding: 12px 20px 28px; }
+  iframe { border: 0; background: #f1f2f4; width: 680px; height: 100%; min-height: 620px; border-radius: 12px; box-shadow: 0 10px 40px rgba(21,30,97,.16); transition: width .25s, border-radius .25s; }
+  iframe.movil { width: 390px; border-radius: 34px; border: 10px solid #1d2433; min-height: 760px; max-height: 820px; }
+
+  /* Aviso flotante */
+  .aviso { position: fixed; left: 50%; bottom: 26px; transform: translate(-50%, 20px); opacity: 0; background: var(--tinta); color: #fff; padding: 12px 18px;
+           border-radius: 12px; font-size: 13.5px; box-shadow: 0 10px 30px rgba(0,0,0,.25); transition: opacity .2s, transform .2s; pointer-events: none; z-index: 10; max-width: 90vw; }
+  .aviso.ver { opacity: 1; transform: translate(-50%, 0); }
+  .aviso b { color: #f0d79c; }
+
+  .oculto { display: none !important; }
+
+  @media (max-width: 960px) {
+    header { height: auto; padding: 12px 16px; flex-wrap: wrap; }
+    .marca .sep, .marca img { display: none; }
+    .app { grid-template-columns: 1fr; height: auto; }
+    .panel { border-right: 0; overflow: visible; padding: 16px; }
+    .marco { padding: 12px 16px 24px; }
+    iframe { width: 100%; min-height: 820px; }
+    iframe.movil { width: 100%; max-width: 390px; }
+    .tarjetas { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="marca">
+    <img src="https://instituto-seneca.edu/wp-content/uploads/2025/07/Logo-seneca-300x94.png" alt="Instituto Séneca" onerror="this.remove()">
+    <span class="sep"></span>
+    <h1>Editor de correos<span>Escribe, revisa y copia tu correo en un minuto</span></h1>
+  </div>
+  <span class="esp"></span>
+  <div class="acciones">
+    <button type="button" class="estado" id="estado" title="Ir al siguiente texto por completar"></button>
+    <button type="button" id="descargar" class="b-claro" title="Guardar el correo como archivo">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>Descargar</button>
+    <button type="button" id="copiar" class="b-oro">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>Copiar HTML</button>
+  </div>
+</header>
+<div class="app">
+  <form class="panel" id="form" autocomplete="off">
+    <details class="ayuda-caja">
+      <summary>¿Cómo se usa?</summary>
+      <ol>
+        <li>Elige el tipo de correo, quién lo firma y desde dónde se envía.</li>
+        <li>Cambia los textos. Lo que dice <b>[EDITAR …]</b> hay que llenarlo; esos campos se ven en amarillo. Si dejas un campo vacío, ese bloque desaparece del correo.</li>
+        <li>Para poner algo en negritas escribe <b>**así**</b>. Una línea en blanco separa párrafos.</li>
+        <li>Las imágenes van por enlace: súbelas a la biblioteca de imágenes de Brevo (o a la web) y pega aquí su dirección.</li>
+        <li>Pulsa <b>Copiar HTML</b>. En Brevo: <i>Campañas › Crear › Editor de código</i> y pegar. En Kommo: plantilla de correo en modo HTML.</li>
+      </ol>
+      El diseño, la firma, el pie legal y la baja se ponen solos. Lo que escribes se guarda en este navegador.
+    </details>
+
+    <fieldset class="paso">
+      <legend>Elige el correo</legend>
+      <div class="tarjetas" id="op-plantilla">
+        <label class="tarjeta"><input type="radio" name="plantilla" value="oferta">
+          <span class="icono"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4l-7.2 7.2a2 2 0 01-2.8 0L3 13V3h10l7.6 7.6a2 2 0 010 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg></span>
+          <span><b>Oferta</b><small>Becas, descuentos y promociones</small></span></label>
+        <label class="tarjeta"><input type="radio" name="plantilla" value="carta">
+          <span class="icono"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></span>
+          <span><b>Carta</b><small>Un mensaje personal y cercano</small></span></label>
+        <label class="tarjeta"><input type="radio" name="plantilla" value="informacion-programa">
+          <span class="icono"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg></span>
+          <span><b>Información</b><small>Todo sobre un programa, con vídeo</small></span></label>
+        <label class="tarjeta"><input type="radio" name="plantilla" value="newsletter">
+          <span class="icono"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h13a2 2 0 012 2v12a2 2 0 002 2H6a2 2 0 01-2-2V4z"/><path d="M8 8h7M8 12h7M8 16h4"/></svg></span>
+          <span><b>Newsletter</b><small>Novedades del mes en 3 noticias</small></span></label>
+      </div>
+      <label>¿Quién lo firma?</label>
+      <div class="segmento">
+        <label><input type="radio" name="linea" value="presencial" checked>Presencial<small>Maira</small></label>
+        <label><input type="radio" name="linea" value="online">Online<small>Blanca</small></label>
+      </div>
+      <label>¿Desde dónde se envía?</label>
+      <div class="segmento">
+        <label><input type="radio" name="plataforma" value="brevo" checked>Brevo<small>Campaña a muchos</small></label>
+        <label><input type="radio" name="plataforma" value="kommo">Kommo<small>Uno a uno</small></label>
+      </div>
+    </fieldset>
+
+    <fieldset class="paso">
+      <legend>Escribe el mensaje</legend>
+      <div class="grupo">
+        <label for="titular">Titular <span class="ayuda">· lo primero que se lee</span></label>
+        <input type="text" id="titular" data-campo>
+        <label for="eyebrow">Etiqueta <span class="ayuda">· texto pequeño dorado sobre el titular</span></label>
+        <input type="text" id="eyebrow" data-campo>
+        <label for="gancho" data-en="newsletter">Frase gancho <span class="ayuda">· destacada, debajo del saludo</span></label>
+        <textarea id="gancho" data-campo data-en="newsletter"></textarea>
+        <label for="parrafos" data-en="oferta carta informacion-programa">Texto del correo</label>
+        <textarea id="parrafos" data-campo data-en="oferta carta informacion-programa" style="min-height:140px"></textarea>
+        <label for="preencabezado">Texto de la bandeja <span class="ayuda">· se ve junto al asunto, antes de abrir</span></label>
+        <input type="text" id="preencabezado" data-campo>
+      </div>
+    </fieldset>
+
+    <fieldset class="paso">
+      <legend>Imagen</legend>
+      <div class="grupo">
+        <div class="segmento">
+          <label><input type="radio" name="img_pos" value="arriba">Arriba</label>
+          <label><input type="radio" name="img_pos" value="medio">En medio</label>
+          <label><input type="radio" name="img_pos" value="final">Al final</label>
+          <label><input type="radio" name="img_pos" value="ninguna">Sin imagen</label>
+        </div>
+        <div id="img-campos">
+          <label for="img_url">Enlace de la imagen <span class="ayuda">· 1280 px de ancho</span></label>
+          <input type="url" id="img_url" data-campo>
+          <div class="fila2">
+            <div><label for="img_alt">Descripción</label><input type="text" id="img_alt" data-campo></div>
+            <div><label for="img_enlace">Al pulsarla, abre <span class="ayuda">(opcional)</span></label><input type="url" id="img_enlace" data-campo></div>
+          </div>
+          <label for="img_pie">Pie de foto <span class="ayuda">(opcional; no se usa arriba)</span></label>
+          <input type="text" id="img_pie" data-campo>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="paso" data-en="oferta informacion-programa">
+      <legend>Datos del programa</legend>
+      <div class="fila3 grupo">
+        <div><label for="d_duracion">Duración</label><input type="text" id="d_duracion" data-campo></div>
+        <div><label for="d_modalidad">Modalidad</label><input type="text" id="d_modalidad" data-campo></div>
+        <div><label for="d_inicio">Inicio</label><input type="text" id="d_inicio" data-campo></div>
+      </div>
+    </fieldset>
+
+    <fieldset class="paso" data-en="oferta informacion-programa">
+      <legend>Recuadro destacado</legend>
+      <div class="grupo">
+        <label for="dest_eyebrow">Etiqueta</label><input type="text" id="dest_eyebrow" data-campo>
+        <label for="dest_grande">Texto grande</label><input type="text" id="dest_grande" data-campo>
+        <label for="dest_texto">Detalle</label><input type="text" id="dest_texto" data-campo>
+      </div>
+    </fieldset>
+
+    <fieldset class="paso" data-en="oferta informacion-programa">
+      <legend>Lista con ✓</legend>
+      <div class="grupo">
+        <label for="lista_titulo">Título</label><input type="text" id="lista_titulo" data-campo>
+        <label for="lista_items">Puntos <span class="ayuda">· uno por línea</span></label><textarea id="lista_items" data-campo></textarea>
+      </div>
+    </fieldset>
+
+    <fieldset class="paso" data-en="newsletter">
+      <legend>Noticias <span class="ayuda">· deja una vacía para quitarla</span></legend>
+      <div class="grupo">
+        <div class="noticia" data-n="1"></div>
+        <div class="noticia" data-n="2"></div>
+        <div class="noticia" data-n="3"></div>
+      </div>
+    </fieldset>
+
+    <fieldset class="paso" data-en="informacion-programa">
+      <legend>Vídeo y programa en PDF</legend>
+      <div class="grupo">
+        <label for="video_titulo">Título del vídeo <span class="ayuda">· vacío = sin vídeo</span></label><input type="text" id="video_titulo" data-campo>
+        <label for="video_url">Enlace del vídeo</label><input type="url" id="video_url" data-campo>
+        <label for="pdf_url">Enlace del programa en PDF <span class="ayuda">· vacío = sin botón</span></label><input type="url" id="pdf_url" data-campo>
+      </div>
+    </fieldset>
+
+    <fieldset class="paso">
+      <legend>WhatsApp y despedida</legend>
+      <div class="grupo">
+        <label for="wa_pregunta">Pregunta</label><input type="text" id="wa_pregunta" data-campo>
+        <label for="wa_texto">Texto bajo la pregunta</label><input type="text" id="wa_texto" data-campo>
+        <label for="wa_mensaje">Mensaje que llega al WhatsApp <span class="ayuda">· vacío = el de siempre</span></label><input type="text" id="wa_mensaje" data-campo>
+        <label for="despedida">Despedida</label><input type="text" id="despedida" data-campo>
+      </div>
+    </fieldset>
+
+    <details class="ajustes" id="ajustes">
+      <summary>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>
+        Ajustes <span class="ayuda">· casi nunca hace falta tocarlos</span>
+      </summary>
+      <div class="dentro">
+        <label for="f_razon">Razón social y domicilio</label><input type="text" id="f_razon" data-fijo>
+        <label for="f_privacidad">Enlace a la política de privacidad</label><input type="url" id="f_privacidad" data-fijo>
+        <label for="f_correo_online">Correo de la línea online</label><input type="text" id="f_correo_online" data-fijo>
+        <label for="f_atributo">Atributo del nombre en Brevo</label><input type="text" id="f_atributo" data-fijo>
+      </div>
+    </details>
+    <button type="button" id="restablecer" class="restablecer">Volver a la plantilla original</button>
+  </form>
+
+  <section class="vista">
+    <div class="barra">
+      <div class="dispositivo" role="group" aria-label="Tamaño de la vista previa">
+        <button type="button" id="b-escritorio" aria-pressed="true">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Computadora</button>
+        <button type="button" id="b-movil" aria-pressed="false">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></svg>Celular</button>
+      </div>
+    </div>
+    <div class="marco"><iframe id="vista" title="Vista previa del correo"></iframe></div>
+  </section>
+</div>
+<div class="aviso" id="aviso" role="status" aria-live="polite"></div>
+
+<script>
+// ===== Generador: mismas piezas que construir.py. Si cambia el diseño, cambiar en los dos sitios. =====
+const AZUL = "#1b326c", AZUL_OSCURO = "#151e61", DORADO = "#b8892a", TEXTO = "#4b5567", GRIS = "#687284";
+const FUENTE = "font-family:Arial,Helvetica,sans-serif;";
+const LOGO = "https://instituto-seneca.edu/wp-content/uploads/2025/07/Logo-seneca-300x94.png";
+const HERO = "https://instituto-seneca.edu/wp-content/uploads/2026/09/hero-graduados.jpg-scaled.jpg";
+const VIDEO_MINIATURA = "https://instituto-seneca.edu/wp-content/uploads/2026/08/testimonios.png";
+const ICONO_WA = "https://instituto-seneca.edu/wp-content/uploads/2026/08/icono-whatsapp-final.png";
+const RAZON_SOCIAL = "Séneca Centro Internacional de Postgrado, S.L. · CIF B88642525 · Velázquez 86 B, Planta Baja, 28006 Madrid";
+
+const LINEAS = {
+  presencial: { nombre: "Maira Peñaloza Riera", cargo: "Departamento de Asesoría Formativa", wa: "34640137866",
+    wa_visible: "+34 640 13 78 66", correo: "asesoria@instituto-seneca.edu",
+    wa_texto: "Hola Maira, me interesa recibir información sobre los programas del Instituto Séneca." },
+  online: { nombre: "Blanca Cuesta", cargo: "Asesora de admisiones · Programas online", wa: "34640265377",
+    wa_visible: "+34 640 26 53 77", correo: "internacional@instituto-seneca.edu",
+    wa_texto: "Hola Blanca, me interesa recibir información sobre los programas online del Instituto Séneca." },
+};
+
+function esc(s) {
+  return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+// Texto del usuario: escapado, **negrita** y saltos de línea.
+function rico(s) {
+  return esc(s).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\n/g, "<br>");
+}
+function attr(s) { return esc(String(s ?? "").trim()); }
+
+function plataformas(atributo) {
+  const a = (atributo || "FIRSTNAME").trim() || "FIRSTNAME";
+  return {
+    brevo: { saludo: `Hola{% if contact.${a} %}, <strong style="color:${AZUL};">{{ contact.${a} }}</strong>{% endif %}.`,
+             baja: `<a href="{{ unsubscribe }}" style="color:${AZUL};text-decoration:underline;">Darme de baja</a>` },
+    kommo: { saludo: `Hola, <strong style="color:${AZUL};">{{contact.name}}</strong>.`,
+             baja: "Si no deseas recibir más correos, responde a este mensaje con la palabra BAJA." },
+  };
+}
+
+const p = (texto, margen = "0 0 16px 0") =>
+  `<p style="font-size:15px;line-height:1.62;color:${TEXTO};margin:${margen};${FUENTE}">${texto}</p>`;
+const etiqueta = (texto, color = DORADO) =>
+  `<div style="font-size:11px;line-height:1.2;letter-spacing:1.8px;text-transform:uppercase;color:${color};font-weight:bold;${FUENTE}">${texto}</div>`;
+const fila = (contenido, relleno = "0 42px 30px 42px") => `<tr><td class="pad" style="padding:${relleno};">${contenido}</td></tr>`;
+
+function cabecera(foto) {
+  const logo = `<tr><td class="logo-cell" style="background:${AZUL};padding:10px 42px;"><a href="https://instituto-seneca.edu/"><img class="logo" src="${LOGO}" width="248" alt="Instituto Séneca" style="width:248px;max-width:100%;height:auto;display:block;border:0;"></a></td></tr>`;
+  let img = "";
+  if (foto) {
+    const i = `<img src="${attr(foto.url)}" width="640" alt="${attr(foto.alt) || "Instituto Séneca"}" style="display:block;width:100%;max-width:640px;height:auto;border:0;">`;
+    img = `<tr><td style="padding:0;">${foto.enlace ? `<a href="${attr(foto.enlace)}" style="display:block;">${i}</a>` : i}</td></tr>`;
+  }
+  const linea = `<tr><td style="height:4px;line-height:4px;font-size:0;background:${DORADO};">&nbsp;</td></tr>`;
+  return logo + img + linea;
+}
+
+function titulo(eyebrow, texto, saludo) {
+  return fila((eyebrow ? etiqueta(esc(eyebrow)) : "")
+    + `<h1 class="title" style="font-size:28px;line-height:1.2;color:${AZUL};margin:10px 0 18px 0;${FUENTE}font-weight:bold;">${rico(texto)}</h1>`
+    + p(saludo), "38px 42px 6px 42px");
+}
+
+function parrafos(texto) {
+  const partes = String(texto || "").split(/\n\s*\n/).map(t => t.trim()).filter(Boolean);
+  if (!partes.length) return "";
+  return fila(partes.map((t, i) => p(rico(t), i === partes.length - 1 ? "0" : "0 0 16px 0")).join(""), "0 42px 26px 42px");
+}
+
+function gancho(texto) {
+  if (!String(texto || "").trim()) return "";
+  return fila(`<div style="font-size:18px;line-height:1.5;color:${AZUL_OSCURO};font-weight:bold;border-left:3px solid ${DORADO};padding:2px 0 2px 16px;${FUENTE}">${rico(texto)}</div>`, "0 42px 26px 42px");
+}
+
+function datosClave(valores) {
+  const pares = [["Duración", valores[0]], ["Modalidad", valores[1]], ["Inicio", valores[2]]].filter(([, v]) => String(v || "").trim());
+  if (!pares.length) return "";
+  const ancho = Math.floor(100 / pares.length);
+  const celdas = pares.map(([nombre, valor], i) => {
+    const borde = "border:1px solid #e4e8ef;" + (i ? "border-left:none;" : "");
+    return `<td class="fact" width="${ancho}%" style="width:${ancho}%;padding:16px 12px;${borde}text-align:center;${FUENTE}">`
+      + `<div style="font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:${DORADO};font-weight:bold;">${nombre}</div>`
+      + `<div style="font-size:15px;color:${AZUL};font-weight:bold;margin-top:6px;">${rico(valor)}</div></td>`;
+  }).join("");
+  return fila(`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;"><tr>${celdas}</tr></table>`);
+}
+
+function lista(tituloLista, items) {
+  const puntos = String(items || "").split("\n").map(t => t.trim()).filter(Boolean);
+  if (!puntos.length) return "";
+  const filas = puntos.map(x => `<tr><td width="24" valign="top" style="width:24px;padding:0 0 11px 0;color:${AZUL};font-weight:bold;font-size:14px;${FUENTE}">✓</td>`
+    + `<td style="padding:0 0 11px 0;font-size:14px;line-height:1.55;color:#344054;${FUENTE}">${rico(x)}</td></tr>`).join("");
+  return fila((tituloLista ? etiqueta(esc(tituloLista)) : "")
+    + `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-top:14px;">${filas}</table>`, "0 42px 20px 42px");
+}
+
+function destacado(eyebrow, grande, texto) {
+  if (!String(grande || "").trim() && !String(texto || "").trim()) return "";
+  return fila(`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f7f4ec;border-left:3px solid ${DORADO};border-collapse:collapse;">`
+    + `<tr><td style="padding:20px 22px;${FUENTE}">${eyebrow ? etiqueta(esc(eyebrow)) : ""}`
+    + (String(grande || "").trim() ? `<div style="font-size:26px;line-height:1.2;color:${AZUL};font-weight:bold;margin-top:6px;">${rico(grande)}</div>` : "")
+    + (String(texto || "").trim() ? `<div style="font-size:13px;line-height:1.55;color:#6d7480;margin-top:5px;">${rico(texto)}</div>` : "")
+    + `</td></tr></table>`);
+}
+
+function video(tituloVideo, url) {
+  if (!String(tituloVideo || "").trim()) return "";
+  const u = attr(url) || "[EDITAR: URL_DEL_VIDEO]";
+  return fila(`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${AZUL_OSCURO};border-radius:10px;border-collapse:collapse;">`
+    + `<tr><td style="padding:24px 26px 14px 26px;${FUENTE}">${etiqueta("En vídeo", "#d7b76d")}`
+    + `<div style="font-size:19px;line-height:1.35;color:#ffffff;font-weight:bold;margin-top:8px;">${rico(tituloVideo)}</div></td></tr>`
+    + `<tr><td style="padding:4px 26px 0 26px;"><a href="${u}" style="display:block;text-decoration:none;"><img src="${VIDEO_MINIATURA}" width="100%" alt="Ver vídeo" style="display:block;width:100%;height:auto;border-radius:8px;border:0;"></a></td></tr>`
+    + `<tr><td align="center" style="padding:16px 26px 24px 26px;"><a href="${u}" style="display:inline-block;color:#ffffff;text-decoration:none;font-size:13px;font-weight:bold;padding:10px 18px;border:1px solid #d7b76d;border-radius:7px;${FUENTE}">▶&nbsp; Ver el vídeo</a></td></tr></table>`);
+}
+
+function noticia(n) {
+  if (!String(n.titular || "").trim() && !String(n.texto || "").trim()) return "";
+  return fila((String(n.categoria || "").trim() ? etiqueta(esc(n.categoria)) : "")
+    + `<h2 style="font-size:19px;line-height:1.3;color:${AZUL};margin:8px 0 10px 0;${FUENTE}font-weight:bold;">${rico(n.titular)}</h2>`
+    + p(rico(n.texto), "0 0 10px 0")
+    + (String(n.url || "").trim() ? `<a href="${attr(n.url)}" style="font-size:14px;color:${DORADO};font-weight:bold;text-decoration:none;${FUENTE}">Leer más &rarr;</a>` : ""),
+    "0 42px 28px 42px");
+}
+
+function imagenCentral(foto) {
+  const i = `<img src="${attr(foto.url)}" width="556" alt="${attr(foto.alt) || "Instituto Séneca"}" style="display:block;width:100%;height:auto;border:0;border-radius:10px;">`;
+  return fila((foto.enlace ? `<a href="${attr(foto.enlace)}" style="display:block;text-decoration:none;">${i}</a>` : i)
+    + (String(foto.pie || "").trim() ? `<div style="font-size:12px;line-height:1.5;color:${GRIS};margin-top:8px;text-align:center;${FUENTE}">${rico(foto.pie)}</div>` : ""),
+    "0 42px 30px 42px");
+}
+
+function whatsapp(linea, pregunta, texto, mensaje) {
+  const url = `https://wa.me/${linea.wa}?text=${encodeURIComponent((mensaje || "").trim() || linea.wa_texto)}`;
+  return fila(`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#eef2f8;border-radius:10px;border-collapse:collapse;">`
+    + `<tr><td style="padding:25px;text-align:center;${FUENTE}">`
+    + (String(pregunta || "").trim() ? `<div style="font-size:19px;line-height:1.35;color:${AZUL};font-weight:bold;margin-bottom:8px;">${rico(pregunta)}</div>` : "")
+    + (String(texto || "").trim() ? `<div style="font-size:13px;line-height:1.55;color:${GRIS};margin-bottom:18px;">${rico(texto)}</div>` : "")
+    + `<a class="btn" href="${esc(url)}" style="display:inline-block;background:#25D366;color:#ffffff;text-decoration:none;font-size:14px;font-weight:bold;padding:14px 25px;border-radius:8px;">`
+    + `<img src="${ICONO_WA}" width="18" height="18" alt="" style="display:inline-block;vertical-align:middle;margin-right:8px;border:0;">`
+    + `<span style="vertical-align:middle;">Escríbeme por WhatsApp</span></a>`
+    + `<div style="font-size:12px;color:#7d8592;margin-top:13px;">${linea.wa_visible}</div></td></tr></table>`);
+}
+
+function botonSecundario(texto, url) {
+  if (!String(url || "").trim()) return "";
+  return fila(`<div style="text-align:center;"><a class="btn" href="${attr(url)}" style="display:inline-block;color:${AZUL};text-decoration:none;font-size:13px;font-weight:bold;padding:11px 18px;border:1px solid #cbd4e5;border-radius:7px;background:#ffffff;${FUENTE}">${texto}</a></div>`, "0 42px 30px 42px");
+}
+
+function firma(linea, despedida) {
+  return (String(despedida || "").trim() ? fila(p(rico(despedida), "0"), "0 42px 22px 42px") : "")
+    + fila(`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">`
+      + `<tr><td style="border-top:1px solid #e5e8ed;padding-top:22px;${FUENTE}">`
+      + `<div style="font-size:16px;color:${AZUL};font-weight:bold;">${linea.nombre}</div>`
+      + `<div style="font-size:12px;line-height:1.65;color:#7b8390;margin-top:5px;">${linea.cargo}<br>${linea.wa_visible}<br>`
+      + `<a href="mailto:${esc(linea.correo)}" style="color:${AZUL};text-decoration:none;">${esc(linea.correo)}</a></div></td></tr></table>`);
+}
+
+function pie(baja, razon, privacidad) {
+  return `<tr><td class="pad" style="background:#f7f8fa;border-top:1px solid #e5e8ed;padding:22px 42px;text-align:center;${FUENTE}">`
+    + `<div style="font-size:11px;line-height:1.6;color:#7b8390;">Instituto Séneca · Madrid, España · <a href="https://instituto-seneca.edu" style="color:${AZUL};text-decoration:none;">instituto-seneca.edu</a></div>`
+    + `<div style="font-size:10px;line-height:1.6;color:#9ba1ab;margin-top:9px;">Recibes este mensaje porque solicitaste información sobre nuestros programas y aceptaste recibir comunicaciones del Instituto Séneca.<br>`
+    + `${esc(razon || RAZON_SOCIAL)} · <a href="${attr(privacidad) || "[EDITAR: URL_POLITICA_PRIVACIDAD]"}" style="color:${AZUL};">Política de privacidad</a><br>${baja}</div></td></tr>`;
+}
+
+function documento(tituloPestana, preencabezado, filas) {
+  return `<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="format-detection" content="address=no">
+<title>${esc(tituloPestana)}</title>
+<style>
+@media screen and (max-width:650px){
+  .outer{padding:14px!important}
+  .pad{padding-left:23px!important;padding-right:23px!important}
+  .title{font-size:24px!important}
+  .logo-cell{padding:8px 23px!important;text-align:center!important}
+  .logo{width:260px!important;height:auto!important;margin:0 auto!important}
+  .fact{display:block!important;width:auto!important;border-left:1px solid #e4e8ef!important}
+  .btn{display:block!important;text-align:center!important}
+}
+</style>
+</head>
+<body style="margin:0;background:#f1f2f4;font-family:Arial,Helvetica,sans-serif;color:#344054;">
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;">${esc(preencabezado)}</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f1f2f4;border-collapse:collapse;">
+    <tr><td class="outer" align="center" style="padding:30px 14px;">
+      <table role="presentation" width="640" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:640px;background:#ffffff;border-radius:14px;overflow:hidden;border-collapse:collapse;">
+${filas}
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>
+`;
+}
+
+const TITULOS = { oferta: "Oferta especial", carta: "Carta", "informacion-programa": "Información del programa", newsletter: "Newsletter" };
+
+// Arma el correo con los valores del formulario. "medio" va tras el primer bloque de contenido; "final", antes de WhatsApp.
+function construir(v, fijos) {
+  const linea = { ...LINEAS[v.linea] };
+  if (v.linea === "online" && String(fijos.correo_online || "").trim()) linea.correo = fijos.correo_online.trim();
+  const plat = plataformas(fijos.atributo)[v.plataforma];
+  const foto = (v.img_pos !== "ninguna" && String(v.img_url || "").trim())
+    ? { url: v.img_url, alt: v.img_alt, enlace: v.img_enlace, pie: v.img_pie } : null;
+
+  let primero = [], resto = [];
+  if (v.plantilla === "oferta") {
+    primero = [parrafos(v.parrafos)];
+    resto = [datosClave([v.d_duracion, v.d_modalidad, v.d_inicio]), destacado(v.dest_eyebrow, v.dest_grande, v.dest_texto), lista(v.lista_titulo, v.lista_items)];
+  } else if (v.plantilla === "carta") {
+    primero = [parrafos(v.parrafos)];
+  } else if (v.plantilla === "informacion-programa") {
+    primero = [parrafos(v.parrafos)];
+    resto = [datosClave([v.d_duracion, v.d_modalidad, v.d_inicio]), lista(v.lista_titulo, v.lista_items), destacado(v.dest_eyebrow, v.dest_grande, v.dest_texto), video(v.video_titulo, v.video_url)];
+  } else {
+    primero = [gancho(v.gancho), noticia(v.n[0])];
+    resto = [noticia(v.n[1]), noticia(v.n[2])];
+  }
+  const medio = foto && v.img_pos === "medio" ? imagenCentral(foto) : "";
+  const final = foto && v.img_pos === "final" ? imagenCentral(foto) : "";
+  const cuerpo = primero.join("") + medio + resto.join("") + final
+    + whatsapp(linea, v.wa_pregunta, v.wa_texto, v.wa_mensaje)
+    + (v.plantilla === "informacion-programa" ? botonSecundario("Descargar el programa (PDF)", v.pdf_url) : "");
+  return documento(`${TITULOS[v.plantilla]} · Instituto Séneca`, v.preencabezado,
+    cabecera(foto && v.img_pos === "arriba" ? foto : null)
+    + titulo(v.eyebrow, v.titular, plat.saludo)
+    + cuerpo + firma(linea, v.despedida) + pie(plat.baja, fijos.razon, fijos.privacidad));
+}
+
+// Textos iniciales de cada plantilla (los mismos de construir.py).
+const BASE_COMUN = { img_url: HERO, img_alt: "Instituto Séneca", img_enlace: "", img_pie: "", wa_mensaje: "", despedida: "Saludos cordiales,",
+  gancho: "", parrafos: "", d_duracion: "", d_modalidad: "", d_inicio: "", dest_eyebrow: "", dest_grande: "", dest_texto: "",
+  lista_titulo: "", lista_items: "", video_titulo: "", video_url: "", pdf_url: "", n: [{}, {}, {}] };
+const DATOS = { d_duracion: "[EDITAR: 6 meses]", d_modalidad: "[EDITAR: online / presencial]", d_inicio: "[EDITAR: fecha]" };
+const PREDETERMINADOS = {
+  oferta: { ...BASE_COMUN, ...DATOS, img_pos: "arriba",
+    preencabezado: "[EDITAR: frase corta que se ve en la bandeja, p. ej. Beca especial hasta el 30 de noviembre]",
+    eyebrow: "Oferta especial", titular: "[EDITAR: Beca de 600 € en el Máster en …]",
+    parrafos: "[EDITAR: por qué le escribimos y qué le ofrecemos, en dos o tres líneas.]",
+    dest_eyebrow: "Tu beca", dest_grande: "[EDITAR: 600 €]", dest_texto: "[EDITAR: condiciones y fecha límite, p. ej. Plazas limitadas hasta el 30 de noviembre.]",
+    lista_titulo: "Incluye", lista_items: "[EDITAR: beneficio 1]\n[EDITAR: beneficio 2]\n[EDITAR: beneficio 3]",
+    wa_pregunta: "¿Quieres reservar tu plaza?", wa_texto: "Escríbeme y reviso contigo si tu perfil aplica para la beca." },
+  carta: { ...BASE_COMUN, img_pos: "ninguna",
+    preencabezado: "[EDITAR: frase corta que se ve en la bandeja]",
+    eyebrow: "Asesoría formativa", titular: "[EDITAR: título de la carta]",
+    parrafos: "[EDITAR: primer párrafo. Cercano, en primera persona, como una carta.]\n\n[EDITAR: segundo párrafo. Novedad, fecha o motivo del mensaje.]\n\n[EDITAR: tercer párrafo opcional. Si no hace falta, se borra.]",
+    wa_pregunta: "¿Hablamos?", wa_texto: "Si tienes dudas, escríbeme por WhatsApp y te respondo personalmente.", despedida: "Un saludo cordial," },
+  "informacion-programa": { ...BASE_COMUN, ...DATOS, img_pos: "arriba",
+    preencabezado: "[EDITAR: frase corta que se ve en la bandeja, p. ej. Todo sobre el Máster en …]",
+    eyebrow: "Información del programa", titular: "[EDITAR: nombre del programa]",
+    parrafos: "[EDITAR: a quién va dirigido y qué logra quien lo cursa, en dos o tres líneas.]",
+    lista_titulo: "Qué aprenderás", lista_items: "[EDITAR: módulo o tema 1]\n[EDITAR: módulo o tema 2]\n[EDITAR: módulo o tema 3]\n[EDITAR: módulo o tema 4]",
+    dest_eyebrow: "Titulación", dest_grande: "[EDITAR: título que se obtiene]", dest_texto: "[EDITAR: créditos ECTS, convenio universitario, idioma del diploma.]",
+    video_titulo: "[EDITAR: título del vídeo]", video_url: "[EDITAR: URL_DEL_VIDEO]", pdf_url: "[EDITAR: URL_DEL_PDF]",
+    wa_pregunta: "¿Quieres el programa completo?", wa_texto: "Escríbeme y te envío el temario, precios y fechas de inicio." },
+  newsletter: { ...BASE_COMUN, img_pos: "medio", img_alt: "[EDITAR: descripción de la imagen]", img_pie: "[EDITAR: pie de foto opcional]",
+    preencabezado: "[EDITAR: el mismo gancho, en una línea, para la bandeja de entrada]",
+    eyebrow: "Newsletter · [EDITAR: mes]", titular: "[EDITAR: frase gancho, p. ej. 3 cosas que cambian este mes para tu carrera]",
+    gancho: "[EDITAR: una o dos líneas que den ganas de seguir leyendo.]",
+    n: [1, 2, 3].map(i => ({ categoria: `[EDITAR: categoría de la noticia ${i}, p. ej. Becas]`, titular: `[EDITAR: titular de la noticia ${i}]`,
+      texto: `[EDITAR: dos o tres líneas de la noticia ${i}.]`, url: `[EDITAR: URL_NOTICIA_${i}]` })),
+    wa_pregunta: "¿Te interesa alguno?", wa_texto: "Escríbeme y te cuento los detalles." },
+};
+
+if (typeof module !== "undefined") module.exports = { construir, PREDETERMINADOS };
+
+// ===== Interfaz =====
+if (typeof document !== "undefined") {
+  const $ = id => document.getElementById(id);
+  const form = $("form");
+  const CLAVE = "seneca-editor-v1";
+  const leer = () => { try { return JSON.parse(localStorage.getItem(CLAVE)) || {}; } catch { return {}; } };
+  const guardar = d => { try { localStorage.setItem(CLAVE, JSON.stringify(d)); } catch {} };
+  let memoria = leer();
+  memoria.borradores = memoria.borradores || {};
+  memoria.fijos = memoria.fijos || {};
+
+  // Campos de las noticias
+  document.querySelectorAll(".noticia").forEach(div => {
+    const n = div.dataset.n;
+    div.innerHTML = `<label for="n${n}_categoria">Noticia ${n} · categoría</label><input type="text" id="n${n}_categoria">`
+      + `<label for="n${n}_titular">Titular</label><input type="text" id="n${n}_titular">`
+      + `<label for="n${n}_texto">Texto</label><textarea id="n${n}_texto"></textarea>`
+      + `<label for="n${n}_url">Enlace de «Leer más» <span class="ayuda">(opcional)</span></label><input type="url" id="n${n}_url">`;
+  });
+
+  const radio = nombre => (form.querySelector(`input[name="${nombre}"]:checked`) || {}).value;
+  const marcar = (nombre, valor) => { const r = form.querySelector(`input[name="${nombre}"][value="${valor}"]`); if (r) r.checked = true; };
+
+  function valores() {
+    const v = { plantilla: radio("plantilla"), linea: radio("linea"), plataforma: radio("plataforma"), img_pos: radio("img_pos") };
+    document.querySelectorAll("[data-campo]").forEach(el => { v[el.id] = el.value; });
+    v.n = [1, 2, 3].map(i => ({ categoria: $(`n${i}_categoria`).value, titular: $(`n${i}_titular`).value, texto: $(`n${i}_texto`).value, url: $(`n${i}_url`).value }));
+    return v;
+  }
+  function fijos() {
+    return { razon: $("f_razon").value, privacidad: $("f_privacidad").value, correo_online: $("f_correo_online").value, atributo: $("f_atributo").value };
+  }
+  function cargar(plantilla) {
+    const v = memoria.borradores[plantilla] || PREDETERMINADOS[plantilla];
+    document.querySelectorAll("[data-campo]").forEach(el => { el.value = v[el.id] ?? ""; });
+    (v.n || []).forEach((x, i) => { ["categoria", "titular", "texto", "url"].forEach(k => { $(`n${i + 1}_${k}`).value = (x && x[k]) || ""; }); });
+    marcar("img_pos", v.img_pos || "ninguna");
+    document.querySelectorAll("[data-en]").forEach(el => el.classList.toggle("oculto", !el.dataset.en.split(" ").includes(plantilla)));
+  }
+
+  let html = "", faltan = 0;
+  // Solo en la vista previa: resalta los textos [EDITAR …] (no toca atributos ni el HTML que se copia).
+  const RESALTAR = `<style>mark.pend{background:#fde9b8;color:#7a4f00;border-radius:3px;padding:0 2px;}</style><script>(function(){`
+    + `var w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT),n,l=[];while(n=w.nextNode()){if(n.nodeValue.indexOf("[EDITAR")>-1)l.push(n);}`
+    + `l.forEach(function(t){var s=document.createElement("span");s.innerHTML=t.nodeValue.replace(/&/g,"&amp;").replace(/</g,"&lt;")`
+    + `.replace(/(\\[EDITAR[^\\]]*\\])/g,'<mark class="pend">$1</mark>');t.parentNode.replaceChild(s,t);});})();<\/script>`;
+  // Solo en la vista previa: un nombre de ejemplo en lugar del código del saludo de Brevo o Kommo.
+  const ejemplo = h => h.replace(/\{% if contact\.\w+ %\}|\{% endif %\}/g, "").replace(/\{\{ ?contact\.(\w+) ?\}\}/g, (m, k) => k === "name" ? "María López" : "María");
+  const aviso = texto => { const a = $("aviso"); a.innerHTML = texto; a.classList.add("ver"); clearTimeout(aviso.t); aviso.t = setTimeout(() => a.classList.remove("ver"), 3200); };
+  function actualizar() {
+    const v = valores();
+    memoria.borradores[v.plantilla] = v;
+    memoria.fijos = fijos();
+    memoria.ultima = { plantilla: v.plantilla, linea: v.linea, plataforma: v.plataforma };
+    guardar(memoria);
+    $("img-campos").classList.toggle("oculto", v.img_pos === "ninguna");
+    html = construir(v, memoria.fijos);
+    $("vista").srcdoc = ejemplo(html).replace("</body>", RESALTAR + "</body>");
+    faltan = (html.match(/\[EDITAR/g) || []).length;
+    const e = $("estado");
+    e.textContent = faltan ? `Faltan ${faltan} ${faltan === 1 ? "texto" : "textos"} por completar` : "Listo para copiar";
+    e.className = "estado " + (faltan ? "pendiente" : "ok");
+    form.querySelectorAll("input[type=text], input[type=url], textarea").forEach(el => el.classList.toggle("por-editar", el.value.includes("[EDITAR")));
+  }
+
+  // Estado inicial
+  const ult = memoria.ultima || {};
+  marcar("plantilla", ult.plantilla || "oferta");
+  marcar("linea", ult.linea || "presencial");
+  marcar("plataforma", ult.plataforma || "brevo");
+  Object.entries({ f_razon: "razon", f_privacidad: "privacidad", f_correo_online: "correo_online", f_atributo: "atributo" })
+    .forEach(([id, k]) => { $(id).value = memoria.fijos[k] || (k === "atributo" ? "FIRSTNAME" : k === "razon" ? RAZON_SOCIAL : ""); });
+  cargar(radio("plantilla"));
+  actualizar();
+
+  // El cambio de plantilla lo atiende "change" (primero carga la plantilla nueva y luego guarda).
+  // Si "input" también lo atendiera, guardaría los textos de la plantilla anterior con el nombre de la nueva.
+  form.addEventListener("input", e => { if (e.target.name !== "plantilla") actualizar(); });
+  form.addEventListener("change", e => {
+    if (e.target.name === "plantilla") cargar(e.target.value);
+    actualizar();
+  });
+  $("restablecer").addEventListener("click", () => {
+    const pl = radio("plantilla");
+    delete memoria.borradores[pl];
+    cargar(pl); actualizar();
+  });
+  const dispositivo = movil => { $("vista").classList.toggle("movil", movil); $("b-movil").setAttribute("aria-pressed", movil); $("b-escritorio").setAttribute("aria-pressed", !movil); };
+  $("b-escritorio").addEventListener("click", () => dispositivo(false));
+  $("b-movil").addEventListener("click", () => dispositivo(true));
+  // La píldora de estado lleva al siguiente campo por completar
+  $("estado").addEventListener("click", () => {
+    const pend = [...form.querySelectorAll(".por-editar")].filter(el => el.offsetParent !== null);
+    if (!pend.length) return;
+    const i = (pend.indexOf(document.activeElement) + 1) % pend.length;
+    pend[i].scrollIntoView({ behavior: "smooth", block: "center" }); pend[i].focus({ preventScroll: true });
+  });
+
+  async function copiar() {
+    try { await navigator.clipboard.writeText(html); }
+    catch {
+      const t = document.createElement("textarea"); t.value = html; document.body.appendChild(t); t.select();
+      try { document.execCommand("copy"); } catch {} t.remove();
+    }
+    const donde = radio("plataforma") === "kommo" ? "Kommo, en una plantilla de correo en modo HTML" : "Brevo › Campañas › Crear › <b>Editor de código</b>";
+    aviso(faltan ? `Copiado, pero ojo: <b>faltan ${faltan} ${faltan === 1 ? "texto" : "textos"}</b> por completar.` : `¡Copiado! Pégalo en ${donde}.`);
+  }
+  $("copiar").addEventListener("click", copiar);
+  $("descargar").addEventListener("click", () => {
+    const v = valores();
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([html], { type: "text/html" }));
+    a.download = `${v.plantilla}-${v.linea}-${v.plataforma}.html`;
+    a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
+}
+</script>
+</body>
+</html>
