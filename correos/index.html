@@ -362,7 +362,7 @@ function rico(s) {
 function attr(s) { return esc(String(s ?? "").trim()); }
 
 function plataformas(atributo) {
-  const a = (atributo || "FIRSTNAME").trim() || "FIRSTNAME";
+  const a = (atributo || "NOMBRE").trim() || "NOMBRE";
   return {
     brevo: { saludo: `Hola{% if contact.${a} %}, <strong style="color:${AZUL};">{{ contact.${a} }}</strong>{% endif %}.`,
              baja: `<a href="{{ unsubscribe }}" style="color:${AZUL};text-decoration:underline;">Darme de baja</a>` },
@@ -671,7 +671,7 @@ if (typeof document !== "undefined") {
   marcar("linea", ult.linea || "presencial");
   marcar("plataforma", ult.plataforma || "brevo");
   Object.entries({ f_razon: "razon", f_privacidad: "privacidad", f_correo_online: "correo_online", f_atributo: "atributo" })
-    .forEach(([id, k]) => { $(id).value = memoria.fijos[k] || (k === "atributo" ? "FIRSTNAME" : k === "razon" ? RAZON_SOCIAL : ""); });
+    .forEach(([id, k]) => { $(id).value = memoria.fijos[k] || (k === "atributo" ? "NOMBRE" : k === "razon" ? RAZON_SOCIAL : ""); });
   cargar(radio("plantilla"));
   actualizar();
 
